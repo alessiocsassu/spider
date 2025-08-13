@@ -7,7 +7,7 @@ name = "spider-tui"
 version = "0.1.0"
 description = "Spider Solitaire in terminale con Textual"
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.10"
 authors = [{ name = "Alessio Sassu" }]
 dependencies = [
   "textual>=0.48,<1.0",
