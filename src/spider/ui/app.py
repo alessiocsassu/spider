@@ -383,5 +383,5 @@ class SpiderApp(App):
             self._refresh_all()
 
 
-if __name__ == "__main__":
+def main() -> None:
     SpiderApp().run()
