@@ -1,12 +1,24 @@
 [build-system]
-requires = ["setuptools>=68"]
+requires = ["setuptools>=69", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "spider"
-version = "0.0.1"
-description = "Spider solitaire TUI"
+name = "spider-tui"
+version = "0.1.0"
+description = "Spider Solitaire in terminale con Textual"
+readme = "README.md"
 requires-python = ">=3.11"
+authors = [{ name = "Alessio Sassu" }]
+dependencies = [
+  "textual>=0.58",
+  "rich>=13"
+]
+
+[project.scripts]
+spider = "spider.ui.app:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
 
 [tool.setuptools.packages.find]
 where = ["src"]

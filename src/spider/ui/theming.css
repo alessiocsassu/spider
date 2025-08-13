@@ -1,5 +1,6 @@
 /* Layout base */
 Screen { layout: vertical; }
+Screen.-won { background: #123512;}
 #top { dock: top; height: 3; }
 #board { layout: horizontal; height: 1fr; }
 #hud  { dock: bottom; height: 1; }

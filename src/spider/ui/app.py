@@ -1,25 +1,25 @@
 from __future__ import annotations
+
 from random import shuffle
 from time import time
 from typing import List, Optional, Tuple
 
-from textual.app import App, ComposeResult
-from textual.widgets import Header, Footer, Static, Button
-from textual.containers import Horizontal
-from textual import on
-from textual.events import Click
 from rich.text import Text
+from textual import on
+from textual.app import App, ComposeResult
+from textual.containers import Horizontal
+from textual.events import Click
+from textual.widgets import Button, Footer, Header, Static
 
+from ..game import actions, rules
 from ..game.cards import Card
 from ..game.state import GameState
-from ..game import actions
-from ..game import rules
 
 
 # ---------------------- helpers & theme ----------------------
 
-RANK_LABELS = ("A","2","3","4","5","6","7","8","9","10","J","Q","K")
-TAIL_COLOR = "#2f579c"   # blu per la run di coda
+RANK_LABELS = ("A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K")
+TAIL_COLOR = "#2f579c"  # colore per la run ordinata in coda
 
 def fmt_mmss(seconds: int) -> str:
     m, s = divmod(max(0, int(seconds)), 60)
@@ -27,14 +27,18 @@ def fmt_mmss(seconds: int) -> str:
 
 def points_for_move(delta_s: float) -> int:
     """Più veloce = più punti."""
-    if delta_s <= 2:   return 10
-    if delta_s <= 5:   return 7
-    if delta_s <= 10:  return 4
-    if delta_s <= 20:  return 2
+    if delta_s <= 2:
+        return 10
+    if delta_s <= 5:
+        return 7
+    if delta_s <= 10:
+        return 4
+    if delta_s <= 20:
+        return 2
     return 1
 
 def suit_of(c: Card) -> str:
-    return c.suit if hasattr(c, "suit") else "♠"
+    return getattr(c, "suit", "♠")
 
 def base_style_for(c: Card) -> str:
     return "bold #eaeaea on #1f1f1f" if c.face_up else "dim"
@@ -44,6 +48,7 @@ def base_style_for(c: Card) -> str:
 
 class ColumnWidget(Static):
     """Colonna di carte (1 riga = 1 carta)."""
+
     def __init__(self, idx: int):
         super().__init__(id=f"col{idx}", classes="col")
         self.idx = idx
@@ -53,6 +58,7 @@ class ColumnWidget(Static):
         app: SpiderApp = self.app  # type: ignore
         col = app.state.columns[self.idx]
         t = Text()
+
         if not col:
             t.append("[ ]", style="dim")
             return t
@@ -73,15 +79,17 @@ class ColumnWidget(Static):
         full_start: Optional[int] = None
         if len(col) - run_start >= 13:
             window = col[-13:]
-            ok = all(c.face_up for c in window) and all(window[k].rank == 13 - k for k in range(13))
+            ok = all(c.face_up for c in window) and all(
+                window[k].rank == 13 - k for k in range(13)
+            )
             if ok:
                 full_start = len(col) - 13
 
         for i, c in enumerate(col):
-            label = (RANK_LABELS[c.rank-1] + suit_of(c)) if c.face_up else "■"
+            label = (RANK_LABELS[c.rank - 1] + suit_of(c)) if c.face_up else "■"
             style = base_style_for(c)
 
-            # tail (run ordinata di coda) → blu
+            # tail (run di coda) → blu
             if c.face_up and i >= run_start:
                 style = f"bold #ffffff on {TAIL_COLOR}"
 
@@ -116,7 +124,9 @@ class FoundWidget(Static):
 
 class SpiderApp(App):
     """Spider (1 seme) – TUI con click-to-move, punteggio e timer."""
-    
+
+    CSS_PATH = "theming.css"
+
     BINDINGS = [
         ("n", "new_game", "New"),
         ("d", "deal", "Deal"),
@@ -129,16 +139,23 @@ class SpiderApp(App):
         super().__init__()
         self.state = GameState()
         self.columns: List[ColumnWidget] = []
+
+        # HUD
         self.stock = StockWidget(id="stock")
         self.found = FoundWidget(id="found")
         self.hud_time = Static(id="hud_time")
         self.hud_msg = Static(id="hud_msg")
+
+        # selezione
         self.selected: Optional[Tuple[int, int]] = None  # (src_col_idx, start_index)
+
+        # timer & punteggio
         self.t0 = time()
         self.last_move_ts = self.t0
+        self._timer = None  # handle set_interval
 
+        # stato partita
         self.game_over = False
-        self._timer = None  # handle del timer (set_interval)
 
     # ---------- layout ----------
     def compose(self) -> ComposeResult:
@@ -160,7 +177,6 @@ class SpiderApp(App):
     # ---------- lifecycle & loop ----------
     def on_mount(self) -> None:
         self.action_new_game()
-        # salva l'handle del timer: ci serve per fermarlo
         self._timer = self.set_interval(1.0, self._tick)
 
     def _tick(self) -> None:
@@ -178,10 +194,10 @@ class SpiderApp(App):
     def _on_win(self) -> None:
         self.game_over = True
         dt = int(time() - self.t0)
-        bonus = max(0, 1000 - dt)   # bonus: più veloce = più punti
+        bonus = max(0, 1000 - dt)  # bonus finale: più veloce = più punti
         self.state.score += bonus
 
-        # ferma il timer
+        # ferma il timer in modo compatibile con versioni diverse
         try:
             if self._timer is not None:
                 for meth in ("pause", "stop", "cancel"):
@@ -241,6 +257,7 @@ class SpiderApp(App):
                 pass
         self.stock.refresh()
         self.found.refresh()
+
         # aggiorna HUD e controlla vittoria
         if not self.game_over:
             self._tick()
@@ -251,9 +268,9 @@ class SpiderApp(App):
         border_top = 1
         pad_top = int(colw.styles.padding.top or 0)
         try:
-            scroll = int(colw.scroll_offset.y)   # Textual 0.59+
+            scroll = int(colw.scroll_offset.y)  # Textual 0.59+
         except AttributeError:
-            scroll = int(getattr(colw, "scroll_y", 0))
+            scroll = int(getattr(colw, "scroll_y", 0))  # fallback per versioni vecchie
         content_y = max(0, y_click - border_top - pad_top + scroll)
         col = self.state.columns[colw.idx]
         return 0 if not col else min(len(col) - 1, content_y)
@@ -269,12 +286,14 @@ class SpiderApp(App):
     def action_new_game(self) -> None:
         self._new_game_setup()
         self.game_over = False
+
         # ri-attiva Deal
         try:
             self.query_one("#btn_deal", Button).disabled = False
         except Exception:
             pass
-        # reset timer (ferma l’eventuale precedente e ricrealo pulito)
+
+        # reset timer (ferma l’eventuale precedente e ricrealo)
         try:
             if self._timer is not None and hasattr(self._timer, "cancel"):
                 self._timer.cancel()
@@ -331,9 +350,9 @@ class SpiderApp(App):
             return
         if not isinstance(event.control, ColumnWidget):
             return
+
         colw: ColumnWidget = event.control
         col = self.state.columns[colw.idx]
-
         i = self._hit_index(colw, int(event.y))
 
         # se non ho una selezione attiva, provo a selezionare una run da questa colonna
