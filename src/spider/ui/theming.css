@@ -19,10 +19,15 @@ ColumnWidget.-selected{ border: heavy #ffffff; }
 ColumnWidget.-target  { border: heavy #4c8bf5; }
 
 /* Badge */
-#stock, #found {
+#stock, #found, #hud_time, #hud_msg {
   width: 20;
   padding: 0 1;
   border: round #888888;
+}
+
+#hud_time {
+  width: 40;
+  text-align: center;
 }
 
 /* Effetti flash (usati dall'app) */
