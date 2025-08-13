@@ -1,7 +1,20 @@
-**/.venv/
-.pytest_cache/
-*.pyc
-*.pyo
+# Virtual environments
+.venv/
+venv/
+ENV/
+
+# Python cache
 __pycache__/
-src/spider/game/__pycache__/*
-src/spider/ui/__pycache__/*
+*.py[cod]
+*$py.class
+
+# Test cache
+.pytest_cache/
+
+# Distribution / packaging
+*.egg-info/
+dist/
+build/
+
+# Local config
+.env
