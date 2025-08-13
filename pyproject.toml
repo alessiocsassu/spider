@@ -14,6 +14,8 @@ dependencies = [
   "rich>=13.0.0"
 ]
 
+[tool.setuptools.package-data]
+"spider.ui" = ["theming.css"]
 
 [tool.setuptools.package-dir]
 "" = "src"
