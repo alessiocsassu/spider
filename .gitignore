@@ -1,0 +1,7 @@
+.venv/lib/__pycache__
+.pytest_cache/
+*.pyc
+*.pyo
+__pycache__/
+src/spider/game/__pycache__/*
+src/spider/ui/__pycache__/*
