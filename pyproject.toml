@@ -23,8 +23,5 @@ dependencies = [
 [tool.setuptools.packages.find]
 where = ["src"]
 
-[tool.setuptools.package-data]
-"spider.ui" = ["theming.css"]
-
 [project.scripts]
 spider = "spider.ui.app:main"
