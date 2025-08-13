@@ -1,0 +1,29 @@
+/* Layout base */
+Screen { layout: vertical; }
+#top { dock: top; height: 3; }
+#board { layout: horizontal; height: 1fr; }
+#hud  { dock: bottom; height: 1; }
+
+/* Colonne */
+ColumnWidget {
+  width: 1fr;
+  height: 1fr;
+  overflow: auto;
+  align: left top;
+  padding: 0 1;
+  border: round #666666;
+}
+ColumnWidget:hover    { border: round #bbbbbb; }
+ColumnWidget.-selected{ border: heavy #ffffff; }
+ColumnWidget.-target  { border: heavy #4c8bf5; }
+
+/* Badge */
+#stock, #found {
+  width: 20;
+  padding: 0 1;
+  border: round #888888;
+}
+
+/* Effetti flash (usati dall'app) */
+.flash-add      { background: #163a72; }
+.flash-complete { background: #145214; }
