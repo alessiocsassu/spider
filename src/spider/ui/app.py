@@ -63,7 +63,7 @@ class ColumnWidget(Static):
             t.append("[ ]", style="dim")
             return t
 
-        # calcola run discendente in coda (per evidenziare “tail”)
+         # --- tail discendente in coda (movibile) ---
         run_start = len(col)
         if col and col[-1].face_up:
             i = len(col) - 1
@@ -75,7 +75,7 @@ class ColumnWidget(Static):
                     break
             run_start = i
 
-        # eventuale sequenza completa K→A in coda
+        # --- sequenza completa K→A in coda (verde) ---
         full_start: Optional[int] = None
         if len(col) - run_start >= 13:
             window = col[-13:]
@@ -85,19 +85,57 @@ class ColumnWidget(Static):
             if ok:
                 full_start = len(col) - 13
 
+        # --- sottosequenze bloccate (grigio) ---
+        blocked_ranges: list[tuple[int, int]] = []
+        n = len(col)
+        i = 0
+        while i < n - 1:
+            # inizio potenziale run
+            if (
+                col[i].face_up and col[i + 1].face_up
+                and col[i].rank == col[i + 1].rank + 1
+            ):
+                start = i
+                j = i + 1
+                while (
+                    j < n - 1
+                    and col[j].face_up and col[j + 1].face_up
+                    and col[j].rank == col[j + 1].rank + 1
+                ):
+                    j += 1
+                # segment [start..j]; è "bloccata" se NON arriva in fondo
+                if j < n - 1 and (j - start + 1) >= 2:
+                    blocked_ranges.append((start, j))
+                i = j + 1
+            else:
+                i += 1
+
+        def is_blocked_index(k: int) -> bool:
+            return any(a <= k <= b for (a, b) in blocked_ranges)
+
+        # --- rendering ---
         for i, c in enumerate(col):
             label = (RANK_LABELS[c.rank - 1] + suit_of(c)) if c.face_up else "■"
             style = base_style_for(c)
 
-            # tail (run di coda) → blu
+            # tail movibile (blu)
             if c.face_up and i >= run_start:
                 style = f"bold #ffffff on {TAIL_COLOR}"
 
-            # sequenza completa K→A → verde scuro
+            # sequenza completa (verde)
             if full_start is not None and i >= full_start:
                 style = "bold #d9ffd9 on #0f3d0f"
 
-            # selezione corrente (vince su tutto)
+            # sottosequenza bloccata (grigio chiaro) — solo se NON tail/green
+            if (
+                c.face_up
+                and is_blocked_index(i)
+                and not (i >= run_start)
+                and not (full_start is not None and i >= full_start)
+            ):
+                style = "bold #e0e0e0 on #2a2a2a"  # un po' più chiaro del bg normale
+
+            # selezione (vince su tutto)
             if self.sel_from is not None and i >= self.sel_from:
                 style = "reverse"
 
