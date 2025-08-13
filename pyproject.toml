@@ -7,6 +7,9 @@ name = "spider"
 version = "0.0.1"
 description = "Spider solitaire TUI"
 requires-python = ">=3.11"
+dependencies = [
+    "textual>0.59, <0.70",
+]
 
 [tool.setuptools.packages.find]
 where = ["src"]
